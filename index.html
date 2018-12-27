@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+
+        <style>
+            table {
+                width: 100%;
+                height: 100%;
+            }
+
+            .textAreaWrapper {
+                width: 100%;
+                height: 80vh;
+            }
+
+            textarea {
+                width: 80%;
+                height: 95%;
+            }
+        </style>
+    </head>
+    <body>
+        <table>
+            <tr>
+                <td>
+                    <div>
+                        <label>Enter code here</label>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <label>Parsed code here</label>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="textAreaWrapper">
+                        <textarea id="codePlaceholder" title="Enter code here"></textarea>
+                    </div>
+                </td>
+                <td>
+                    <div id="graph" class="split">
+                        <div id="options">
+                            <label id="engine">
+                                Engine:
+                                <select>
+                                    <option>circo</option>
+                                    <option selected>dot</option>
+                                    <option>fdp</option>
+                                    <option>neato</option>
+                                    <option>osage</option>
+                                    <option>twopi</option>
+                                </select>
+                            </label>
+
+                            <label id="format">
+                                Format:
+                                <select>
+                                    <option selected>svg</option>
+                                    <option>png-image-element</option>
+                                    <option>json</option>
+                                    <option>xdot</option>
+                                    <option>plain</option>
+                                    <option>ps</option>
+                                </select>
+                            </label>
+
+                            <label id="raw">
+                                <input type="checkbox"> Show raw output
+                            </label>
+                        </div>
+                        <div id="output">
+                            <div id="error"></div>
+                        </div>
+                    </div>
+                    </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
+                        <button id="codeSubmissionButton">Parse code</button>
+                    </div>
+                </td>
+                <td>
+                </td>
+            </tr>
+        </table>
+
+        <script src="dist/bundle.js"></script>
+    </body>
+</html>
