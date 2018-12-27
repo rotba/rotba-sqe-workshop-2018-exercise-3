@@ -1,5 +1,7 @@
 import $ from 'jquery';
-import {parseCode} from './code-analyzer';
+import {parseCode, extractData} from './code-analyzer';
+import {getInputVector, substituteData, getGlobalDefs, calculateBooleanValuse} from './dataflow-analyzer';
+import {calculateVectorPath} from './vector-path-analyzer';
 import * as esprima from 'esprima';
 import * as esgraph from 'esgraph';
 import Viz from 'viz.js';
@@ -23,19 +25,26 @@ var str = 'digraph G {\n' +
 
 $(document).ready(function () {
     $('#codeSubmissionButton').click(() => {
-        let codeToParse = $('#codePlaceholder').val();
-        let parsedCode = parseCode(codeToParse);
-        const cfg = esgraph(esprima.parse(codeToParse, { range: true }));
-        const graph = esgraph.dot(cfg);
-        var str_1 = 'digraph G {\n';
-        str_1 = str_1.concat(graph,'}');
+        var substituted_data = getSubstitutedData($('#codePlaceholder').val(), $('#inputVector').val());
+        const cfg = esgraph(esprima.parse($('#codePlaceholder').val(), { loc: true }));
+        var calculated_cfg = calculateVectorPath(cfg, substituted_data);
+        const graph_dot = esgraph.dot(cfg);
         var viz = new Viz({ Module, render });
         let graphElement = document.getElementById('graph');
-        viz.renderSVGElement(str)
+        viz.renderSVGElement(graph_dot)
             .then(function(element) {
                 graphElement.innerHTML = '';
                 graphElement.append(element);
             });
-        $('#parsedCode').val(JSON.stringify(parsedCode, null, 2));
     });
 });
+
+function getSubstitutedData(codeToParse, inputVectorString) {
+    let parsedCode = parseCode(codeToParse,{loc: true});
+    let data_array = extractData(parsedCode);
+    data_array.sort(function(a, b){return a['Line']-b['Line'];});
+    var globalDefs = getGlobalDefs(data_array, codeToParse);
+    var substitutedData = substituteData(globalDefs, data_array);
+    var inputVector = getInputVector(substitutedData, inputVectorString);
+    return calculateBooleanValuse(substitutedData, inputVector);
+}

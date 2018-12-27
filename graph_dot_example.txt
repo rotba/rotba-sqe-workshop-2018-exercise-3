@@ -1,0 +1,14 @@
+digraph G {
+	n1[shape = box, label ="1\na = x + 1"];
+	n2[shape = diamond, label ="2\nb < z"];
+	n3[shape = box, label ="3\nc = c + 5"];
+	n4[shape = box, label ="4\nc = c + 5 + z"];
+	n5[label =""];
+	end [shape=box, label = "6\nreturn"];
+	n1 -> n2;
+	n2 -> n3;
+	n2 -> n4;
+	n3 -> n5;
+	n4 -> n5;
+	n5 -> end;
+}
