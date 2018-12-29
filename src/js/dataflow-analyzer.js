@@ -74,11 +74,28 @@ function substituteCode(codeString, substituted_data, inputVector){
 
 function calculateBooleanValuse(subData, inputVector){
     subData.forEach(element=>{
-       if(needToCalcElement(element)){
-           calcElement(element);
-       }
+        if(needToCalcElement(element)){
+            calcElement(element, inputVector);
+        }
     });
 }
+
+function calcElement(element, inputVector) {
+    element.Condition = evaluate(element.Condition, inputVector);
+}
+function evaluate(cond, inputVector) {
+    for (let i = 0; i <inputVector.length ; i++) {
+        var currElemnt = inputVector[i];
+        var var_string = currElemnt.Name;
+        let regex = new RegExp('([^\\d\\w]|\\b)' + var_string.replace('[', '\\[').replace(']', '\\]')  + '([^\\d\\w]|\\b)', 'g');
+        cond = cond.replace(regex, function (x) {
+            return x.replace(var_string, currElemnt.Value);
+        });
+    }
+    return eval(cond);
+}
+
+
 function needToCalcElement(element) {
     return element.Type =='if statement' ||element.Type =='else if statement' || element.Type =='while statement';
 }

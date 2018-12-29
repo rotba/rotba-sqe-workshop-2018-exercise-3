@@ -490,7 +490,9 @@ var codeString_19 =
     return a;
 }
 `;
-var subCalcData = calculateBooleanValuse(getSubCalc(codeString_19), '5')
+var subCalcData = getSubData(codeString_19);
+var inVec_19 = getInputVector(subCalcData, '5');
+calculateBooleanValuse(subCalcData, inVec_19);
 var ifData_19 = subCalcData.filter(x=> x.Line ==4)[0];
 describe.only('The data flow analayzer', () => {
     it('is substituting properly while statement', () => {
@@ -498,7 +500,7 @@ describe.only('The data flow analayzer', () => {
     });
 });
 
-function getSubCalc(codeString) {
+function getSubData(codeString) {
     var codeJson = parseCode(codeString);
     var data = extractData(codeJson);
     var glblDfs = getGlobalDefs(data, codeString);
