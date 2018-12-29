@@ -403,7 +403,7 @@ var codeString_15 =
 var expected_15 =
     'let w = 1;\n' +
     '    function foo(z){\n' +
-    '    return w;\n' +
+    '    return 1;\n' +
     '}'
 
 var codeJson_15 = parseCode(codeString_15);
@@ -449,6 +449,7 @@ var codeString_17 =
     w = a +1;
     return a;
 }
+let z = 1;
 `;
 
 var expected_17 =
@@ -463,15 +464,7 @@ var data_17 = extractData(codeJson_17);
 var glbl_feds_17 = getGlobalDefs(data_17, codeString_17);
 var data_sub_17 = substituteData(glbl_feds_17,data_17);
 var res_17 = substituteCode(codeString_17, data_sub_17, getInputVector(data_sub_17, '1'));
-var codeString_18 =
-    `function foo(x, y, z){
-    let b = [6,5,5,5];
-    b[0] = 1;
-    if (b[0] < z) {
-        return b[2];
-    }
-}
-`;
+
 
 
 describe('The data flow analayzer', () => {

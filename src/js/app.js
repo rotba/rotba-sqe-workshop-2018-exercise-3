@@ -27,10 +27,10 @@ var str = 'digraph G {\n' +
 $(document).ready(function () {
     $('#codeSubmissionButton').click(() => {
         var substituted_data = getSubstitutedData($('#codePlaceholder').val(), $('#inputVector').val());
-        var ast = esprima.parse($('#codePlaceholder').val());
+        var ast = esprima.parse($('#codePlaceholder').val(),{ loc: true });
         const cfg = esgraph(ast.body[0].body, { loc: true });
         var calculated_cfg = calculateVectorPath(cfg, substituted_data);
-        const graph_dot = dot(cfg);
+        const graph_dot = dot(calculated_cfg);
         var viz = new Viz({ Module, render });
         let graphElement = document.getElementById('graph');
         viz.renderSVGElement('digraph G {\n'.concat(graph_dot, '\n}'))
@@ -51,3 +51,5 @@ function getSubstitutedData(codeToParse, inputVectorString) {
     calculateBooleanValuse(substitutedData, inputVector);
     return substitutedData;
 }
+
+export {getSubstitutedData};

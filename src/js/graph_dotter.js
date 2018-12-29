@@ -9,16 +9,20 @@ var handlers = {
     // IfStatement : ifHandler,
     // ReturnStatement : retHandler
 };
+
 function dot(cfg) {
     const source =undefined
     const counter = 0;
     const output = [];
     const nodes_not_merged = cfg[2].filter(x=> x.type!='entry' &&x.type!='exit');
-    // print all the nodes:
     const nodes = mergeCUses(nodes_not_merged);
     handleNodes(nodes, counter, source, output);
-
+    handleEdges(nodes, counter, source, output);
     // print all the edges:
+    return output.join('');
+}
+
+function handleEdges(nodes, counter, source, output) {
     for (const [i, node] of nodes.entries()) {
         for (const type of ['normal', 'true', 'false']) {
             const next = node[type];
@@ -29,13 +33,12 @@ function dot(cfg) {
             output.push(']\n');
         }
     }
-    return output.join('');
 }
 
 function handleNodes(nodes, counter, source, output) {
     for (const [i, node] of nodes.entries()) {
         let { label = node.type } = node;
-        const ast = node.astNode;
+        //const noedType = getNodeType(node);;
         if(ast !=undefined && ast.type in handlers){
             handlers[ast.type](node, counter, source, output, i);
         }else{
@@ -74,10 +77,17 @@ function handleNodes(nodes, counter, source, output) {
             }
             output.push(`n${counter + i} [label="${label}"`);
             if (['entry', 'exit'].includes(node.type)) output.push(', style="rounded"');
+            if(node.inVectorPath) output.push(', color=green');
             output.push(']\n');
         }
 
     }
+}
+function varDeclHandler(nodes, counter, source, output, i){
+    var label = 'hey';
+    output.push(`n${counter + i} [label="${label}"`);
+    output.push(', shape = box');
+    output.push(']\n');
 }
 
 function getNodeLabel(node, param2) {
@@ -145,14 +155,19 @@ function needToMerge(node1, node2) {
     if(node2.prev.length!=1){
         return false;
     }
-    return true;
+
+    return isNextOf(node1, node2);
 }
 
-function varDeclHandler(nodes, counter, source, output, i){
-    var label = 'hey';
-    output.push(`n${counter + i} [label="${label}"`);
-    output.push(', shape = box');
-    output.push(']\n');
+function isNextOf(node1, node2) {
+    if(!node1.next){
+        return false;
+    }
+    if(node1.next.constructor ===Array){
+        return node1.next.includes(node2);
+    }else{
+        return node1.next ==node2;
+    }
 }
 
 export {dot, convertASTtoArray, mergeCUses,mergeNodes, needToMerge};
