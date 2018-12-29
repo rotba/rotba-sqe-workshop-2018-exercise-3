@@ -81,7 +81,7 @@ function calculateBooleanValuse(subData, inputVector){
 }
 
 function calcElement(element, inputVector) {
-    element.Condition = evaluate(element.Condition, inputVector);
+    element.Value = evaluate(element.Condition, inputVector);
 }
 function evaluate(cond, inputVector) {
     for (let i = 0; i <inputVector.length ; i++) {
@@ -126,9 +126,9 @@ function getGlobals(substitutedData) {
 function getAfterFuncFlobals(substitutedData) {
     var ans = [];
     var funcDecs = substitutedData.filter(x => x.Type== 'function declaration');
-    //if(funcDecs.length == 0){for coverage
-    //   return ans;for coverage
-    //}for coverage
+    if(funcDecs.length == 0){
+        return ans;
+    }
     var funcEndNum = funcDecs[0].loc.end.line;
     ans.push.apply(ans,substitutedData.filter(x => x.Type== 'variable declaration' && x.Line >funcEndNum));
     return ans;

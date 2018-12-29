@@ -494,7 +494,7 @@ var subCalcData = getSubData(codeString_19);
 var inVec_19 = getInputVector(subCalcData, '5');
 calculateBooleanValuse(subCalcData, inVec_19);
 var ifData_19 = subCalcData.filter(x=> x.Line ==4)[0];
-describe.only('The data flow analayzer', () => {
+describe('The data flow analayzer', () => {
     it('is substituting properly while statement', () => {
         assert.equal(ifData_19.Value, true);
     });
