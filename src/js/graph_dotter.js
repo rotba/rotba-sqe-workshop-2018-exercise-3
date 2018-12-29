@@ -1,13 +1,8 @@
 import * as escodegen from 'escodegen';
-var handlers = {
-    // FunctionDeclaration : funcDeclHandler,
-    VariableDeclaration : varDeclHandler,
-    // ExpressionStatement : exspStatHandler,
-    // UpdateExpression: updateStatHandler,
-    // WhileStatement : whileHandler,
-    // ForStatement : forHandler,
-    // IfStatement : ifHandler,
-    // ReturnStatement : retHandler
+var nodeHandlers = {
+    normal : normalHandler,
+    test : testHandler
+
 };
 
 function dot(cfg) {
@@ -18,7 +13,6 @@ function dot(cfg) {
     const nodes = mergeCUses(nodes_not_merged);
     handleNodes(nodes, counter, source, output);
     handleEdges(nodes, counter, source, output);
-    // print all the edges:
     return output.join('');
 }
 
@@ -26,73 +20,50 @@ function handleEdges(nodes, counter, source, output) {
     for (const [i, node] of nodes.entries()) {
         for (const type of ['normal', 'true', 'false']) {
             const next = node[type];
-            if (!next) continue;
+            if (ignoeNext(node, next ,nodes)) continue;
             output.push(`n${counter + i} -> n${counter + nodes.indexOf(next)} [`);
             if (['true', 'false'].includes(type)) output.push(`label="${type}"`);
-
             output.push(']\n');
         }
     }
+}
+
+function ignoeNext(node, next, nodes) {
+    return !next || (nodes.indexOf(next)==-1);
 }
 
 function handleNodes(nodes, counter, source, output) {
     for (const [i, node] of nodes.entries()) {
-        let { label = node.type } = node;
-        //const noedType = getNodeType(node);;
-        if(ast !=undefined && ast.type in handlers){
-            handlers[ast.type](node, counter, source, output, i);
-        }else{
-            if (!label && source && node.astNode.range) {
-                const ast = node.astNode;
-                let { range } = ast;
-                let add = '';
-
-                // special case some statements to get them properly printed
-                if (ast.type === 'SwitchCase') {
-                    if (ast.test) {
-                        range = [range[0], ast.test.range[1]];
-                        add = ':';
-                    } else {
-                        range = [range[0], range[0]];
-                        add = 'default:';
-                    }
-                } else if (ast.type === 'ForInStatement') {
-                    range = [range[0], ast.right.range[1]];
-                    add = ')';
-                } else if (ast.type === 'CatchClause') {
-                    range = [range[0], ast.param.range[1]];
-                    add = ')';
-                }
-
-                label =
-                    source
-                        .slice(range[0], range[1])
-                        .replace(/\n/g, '\\n')
-                        .replace(/\t/g, '    ')
-                        .replace(/"/g, '\\"') + add;
-            }
-
-            if (!label && node.astNode) {
-                label = getNodeLabel(node, counter+i);
-            }
-            output.push(`n${counter + i} [label="${label}"`);
-            if (['entry', 'exit'].includes(node.type)) output.push(', style="rounded"');
-            if(node.inVectorPath) output.push(', color=green');
-            output.push(']\n');
-        }
-
+        const noedType = getNodeType(node);
+        nodeHandlers[noedType](node, counter, source, output, i);
     }
 }
-function varDeclHandler(nodes, counter, source, output, i){
-    var label = 'hey';
-    output.push(`n${counter + i} [label="${label}"`);
-    output.push(', shape = box');
+
+function getNodeType(node) {
+    if(!node.normal){
+        return 'test';
+    }else{
+        return 'normal';
+    }
+}
+
+function normalHandler(node, counter, source, output, i){
+    const label = getNodeLabel(node, counter+i);
+    output.push(`n${counter + i} [label="${label}", shape=box`);
+    if(node.inVectorPath) output.push(', fillcolor=darkolivegreen3, style=filled');
     output.push(']\n');
 }
 
-function getNodeLabel(node, param2) {
+function testHandler(node, counter, source, output, i){
+    const label = getNodeLabel(node, counter+i);
+    output.push(`n${counter + i} [label="${label}", shape=diamond`);
+    if(node.inVectorPath) output.push(', fillcolor=darkolivegreen3, style=filled');
+    output.push(']\n');
+}
+
+function getNodeLabel(node, number) {
     var ans = '';
-    ans = ans.concat(param2, '\n');
+    ans = ans.concat('-',number,'-', '\n');
     node.astNode.forEach(function(element) {
         ans = ans.concat(escodegen.generate(element), '\n');
     });

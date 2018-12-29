@@ -8,22 +8,6 @@ import * as esgraph from 'esgraph';
 import Viz from 'viz.js';
 import {Module, render} from 'viz.js/full.render';
 
-var str = 'digraph G {\n' +
-    '\tn1[shape = box, label ="1\\na = x + 1"];\n' +
-    '\tn2[shape = diamond, label ="2\\nb < z"];\n' +
-    '\tn3[shape = box, label ="3\\nc = c + 5"];\n' +
-    '\tn4[shape = box, label ="4\\nc = c + 5 + z"];\n' +
-    '\tn5[label =""];\n' +
-    '\tend [shape=box, label = "6\\nreturn"];\n' +
-    '\tn1 -> n2;\n' +
-    '\tn2 -> n3;\n' +
-    '\tn2 -> n4;\n' +
-    '\tn3 -> n5;\n' +
-    '\tn4 -> n5;\n' +
-    '\tn5 -> end;\n' +
-    '}';
-
-
 $(document).ready(function () {
     $('#codeSubmissionButton').click(() => {
         var substituted_data = getSubstitutedData($('#codePlaceholder').val(), $('#inputVector').val());
