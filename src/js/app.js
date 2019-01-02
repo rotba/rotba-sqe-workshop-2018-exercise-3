@@ -1,8 +1,7 @@
 import $ from 'jquery';
 import {parseCode, extractData} from './code-analyzer';
-import {getInputVector, substituteData, getGlobalDefs, calculateBooleanValuse} from './dataflow-analyzer';
+import {getInputVector, substituteData, getGlobalDefs, calculateBooleanValuse, dot} from './dataflow-analyzer';
 import {calculateVectorPath} from './vector-path-analyzer';
-import {dot} from './graph_dotter';
 import * as esprima from 'esprima';
 import * as esgraph from 'esgraph';
 import Viz from 'viz.js';
