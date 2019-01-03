@@ -8,18 +8,22 @@ import {
     findDCPs,
     mergeCUses,
     mergeNodes,
-    needToMerge
+    needToMerge,
+    getDefinitions,
+    substituteData,
+    getGlobalDefs,
+    getUses,
+    isFeasible,
+    substituteCode,
+    getInputVector,
+    calc_type,
+    calculateVectorPath,
+    getCondLine,
+    getCondValue,
+    inPath
 } from '../src/js/dataflow-analyzer';
-import {getDefinitions} from '../src/js/dataflow-analyzer';
-import {getGlobalDefs} from '../src/js/dataflow-analyzer';
-import {getUses} from '../src/js/dataflow-analyzer';
-import {isFeasible} from '../src/js/dataflow-analyzer';
-import {substituteData} from '../src/js/dataflow-analyzer';
-import {substituteCode} from '../src/js/dataflow-analyzer';
-import {getInputVector} from '../src/js/dataflow-analyzer';
 import * as esprima from 'esprima';
 import * as esgraph from 'esgraph/lib';
-import {calculateVectorPath} from '../src/js/vector-path-analyzer';
 
 
 var codeString_1 = `function foo(x, y, z){
@@ -44,7 +48,7 @@ var def_line_1 = 7;
 var uses_line_1 = 10;
 
 var def_1 = getDefinitions(def_line_1, data_1.slice());
-var uses_1 = getUses('c',uses_line_1, data_1.slice());
+var uses_1 = getUses('c', uses_line_1, data_1.slice());
 describe('The data flow analayzer', () => {
     it('is getting the definitions right', () => {
         assert.equal(def_1[0].id, 'c');
@@ -60,7 +64,7 @@ describe('The data flow analayzer', () => {
     });
     it('is getting the definition use right', () => {
         assert.equal(uses_1[0].id, 'c');
-        assert.equal(uses_1[0].Value, '(   c   +   x   ) +  5 ' );
+        assert.equal(uses_1[0].Value, '(   c   +   x   ) +  5 ');
     });
     it('is getting the c_use right', () => {
         assert.equal(uses_1[1].id, 'c');
@@ -78,7 +82,7 @@ var data_2 = extractData(codeJson_2);
 var line_2 = 2;
 var use_line_2 = 3;
 var def_2 = getDefinitions(line_2, data_2.slice())[0];
-var use_2 = getUses('x',use_line_2, data_2.slice())[1];
+var use_2 = getUses('x', use_line_2, data_2.slice())[1];
 
 describe('The data flow analayzer', () => {
     it('is comoutes if a path is feasible', () => {
@@ -96,7 +100,7 @@ var data_3 = extractData(codeJson_3);
 var line_3 = 2;
 var use_line_3 = 3;
 var def_3 = getDefinitions(line_3, data_3.slice())[0];
-var use_3 = getUses('x',use_line_3, data_3.slice())[1];
+var use_3 = getUses('x', use_line_3, data_3.slice())[1];
 
 describe('The data flow analayzer', () => {
     it('is comoutes if a path is feasible', () => {
@@ -156,7 +160,7 @@ var codeString_6 = `function foo(x){
 var codeJson_6 = parseCode(codeString_6);
 var data_6 = extractData(codeJson_6);
 var glbl_feds_6 = getGlobalDefs(data_6, codeString_6);
-var data_sub_6 = substituteData(glbl_feds_6,data_6);
+var data_sub_6 = substituteData(glbl_feds_6, data_6);
 var substituted_a = data_sub_6[3].Value;
 
 describe('The data flow analayzer', () => {
@@ -164,7 +168,6 @@ describe('The data flow analayzer', () => {
         assert.equal(substituted_a, 'x + 1');
     });
 });
-
 
 
 var codeString_7 = `function foo(x){
@@ -179,7 +182,7 @@ var expected_7 = 'function foo(x){\n' +
 var codeJson_7 = parseCode(codeString_7);
 var data_7 = extractData(codeJson_7);
 var glbl_feds_7 = getGlobalDefs(data_7, codeString_7);
-var data_sub_7 = substituteData(glbl_feds_7,data_7);
+var data_sub_7 = substituteData(glbl_feds_7, data_7);
 var res_7 = substituteCode(codeString_7, data_sub_7, getInputVector(data_sub_7, '1'));
 
 
@@ -189,7 +192,7 @@ describe('The data flow analayzer', () => {
     });
 });
 var codeString_8 =
-`function foo(x){
+    `function foo(x){
     let a = x + 1;
     if(a<x){
         return a+x;
@@ -205,7 +208,7 @@ var expected_8 = 'function foo(x){\n' +
 var codeJson_8 = parseCode(codeString_8);
 var data_8 = extractData(codeJson_8);
 var glbl_feds_8 = getGlobalDefs(data_8, codeString_8);
-var data_sub_8 = substituteData(glbl_feds_8,data_8);
+var data_sub_8 = substituteData(glbl_feds_8, data_8);
 var res_8 = substituteCode(codeString_8, data_sub_8, getInputVector(data_sub_8, '1'));
 
 describe('The data flow analayzer', () => {
@@ -235,7 +238,7 @@ describe('The data flow analayzer', () => {
 });
 
 var codeString_10 =
-`function foo(x){
+    `function foo(x){
     let a = x + 1;
     if (a < x) {
         return x + a;
@@ -255,8 +258,8 @@ var expected_10 =
 var codeJson_10 = parseCode(codeString_10);
 var data_10 = extractData(codeJson_10);
 var glbl_feds_10 = getGlobalDefs(data_10, codeString_10);
-var data_sub_10 = substituteData(glbl_feds_10,data_10);
-var res_10 = substituteCode(codeString_10, data_sub_10,  getInputVector(data_sub_10, '1'));
+var data_sub_10 = substituteData(glbl_feds_10, data_10);
+var res_10 = substituteCode(codeString_10, data_sub_10, getInputVector(data_sub_10, '1'));
 
 describe('The data flow analayzer', () => {
     it('is substituting properly', () => {
@@ -285,8 +288,8 @@ var expected_11 =
 var codeJson_11 = parseCode(codeString_11);
 var data_11 = extractData(codeJson_11);
 var glbl_feds_11 = getGlobalDefs(data_11, codeString_11);
-var data_sub_11 = substituteData(glbl_feds_11,data_11);
-var res_11 = substituteCode(codeString_11, data_sub_11,  getInputVector(data_sub_11, '1'));
+var data_sub_11 = substituteData(glbl_feds_11, data_11);
+var res_11 = substituteCode(codeString_11, data_sub_11, getInputVector(data_sub_11, '1'));
 
 describe('The data flow analayzer', () => {
     it('is substituting properly', () => {
@@ -295,7 +298,7 @@ describe('The data flow analayzer', () => {
 });
 
 var codeString_12 =
-`function foo(z){
+    `function foo(z){
     let b = z+1;
     while (b < z) {
         return b;
@@ -307,15 +310,15 @@ var expected_12 =
     'function foo(z){\n' +
     '    while(z + 1 < z) {\n' +
     '        return z + 1;\n' +
-    '    }\n'+
+    '    }\n' +
     '    return z;\n' +
-    '}'
+    '}';
 
 var codeJson_12 = parseCode(codeString_12);
 var data_12 = extractData(codeJson_12);
 var glbl_feds_12 = getGlobalDefs(data_12, codeString_12);
-var data_sub_12 = substituteData(glbl_feds_12,data_12);
-var res_12 = substituteCode(codeString_12, data_sub_12,  getInputVector(data_sub_12, '1'));
+var data_sub_12 = substituteData(glbl_feds_12, data_12);
+var res_12 = substituteCode(codeString_12, data_sub_12, getInputVector(data_sub_12, '1'));
 
 describe('The data flow analayzer', () => {
     it('is substituting properly while statement', () => {
@@ -333,7 +336,7 @@ var codeString_13 =
 var codeJson_13 = parseCode(codeString_13);
 var data_13 = extractData(codeJson_13);
 var glbl_feds_13 = getGlobalDefs(data_13, codeString_13);
-var data_sub_13 = substituteData(glbl_feds_13,data_13);
+var data_sub_13 = substituteData(glbl_feds_13, data_13);
 var substituted_val_13 = data_sub_13[5];
 
 describe('The data flow analayzer', () => {
@@ -350,10 +353,10 @@ var codeString_14 =
 }
 `;
 
-var codeJson_14= parseCode(codeString_14);
-var data_14= extractData(codeJson_14);
-var glbl_feds_14= getGlobalDefs(data_14, codeString_14);
-var data_sub_14= substituteData(glbl_feds_14,data_14);
+var codeJson_14 = parseCode(codeString_14);
+var data_14 = extractData(codeJson_14);
+var glbl_feds_14 = getGlobalDefs(data_14, codeString_14);
+var data_sub_14 = substituteData(glbl_feds_14, data_14);
 var updatedGlobalDef_14 = glbl_feds_14[1].def;
 describe('The data flow analayzer', () => {
     it('is substituting properly example 1', () => {
@@ -415,12 +418,12 @@ var expected_15 =
     'let w = 1;\n' +
     '    function foo(z){\n' +
     '    return 1;\n' +
-    '}'
+    '}';
 
 var codeJson_15 = parseCode(codeString_15);
 var data_15 = extractData(codeJson_15);
 var glbl_feds_15 = getGlobalDefs(data_15, codeString_15);
-var data_sub_15 = substituteData(glbl_feds_15,data_15);
+var data_sub_15 = substituteData(glbl_feds_15, data_15);
 var res_15 = substituteCode(codeString_15, data_sub_15, getInputVector(data_sub_15, '1'));
 
 describe('The data flow analayzer', () => {
@@ -441,12 +444,12 @@ var expected_16 =
     'function foo(w){\n' +
     'w = w + 1;\n' +
     '    return w;\n' +
-    '}'
+    '}';
 
 var codeJson_16 = parseCode(codeString_16);
 var data_16 = extractData(codeJson_16);
 var glbl_feds_16 = getGlobalDefs(data_16, codeString_16);
-var data_sub_16 = substituteData(glbl_feds_16,data_16);
+var data_sub_16 = substituteData(glbl_feds_16, data_16);
 var res_16 = substituteCode(codeString_16, data_sub_16, getInputVector(data_sub_16, '1'));
 describe('The data flow analayzer', () => {
     it('is substituting properly while statement', () => {
@@ -467,15 +470,14 @@ var expected_17 =
     'function foo(w){\n' +
     'w = w + 1;\n' +
     '    return w;\n' +
-    '}\n'+
+    '}\n' +
     'let z = 1;';
 
 var codeJson_17 = parseCode(codeString_17);
 var data_17 = extractData(codeJson_17);
 var glbl_feds_17 = getGlobalDefs(data_17, codeString_17);
-var data_sub_17 = substituteData(glbl_feds_17,data_17);
+var data_sub_17 = substituteData(glbl_feds_17, data_17);
 var res_17 = substituteCode(codeString_17, data_sub_17, getInputVector(data_sub_17, '1'));
-
 
 
 describe('The data flow analayzer', () => {
@@ -497,7 +499,7 @@ var codeString_19 =
 var subCalcData = getSubData(codeString_19);
 var inVec_19 = getInputVector(subCalcData, '5');
 calculateBooleanValuse(subCalcData, inVec_19);
-var ifData_19 = subCalcData.filter(x=> x.Line ==4)[0];
+var ifData_19 = subCalcData.filter(x => x.Line == 4)[0];
 describe('The data flow analayzer', () => {
     it('is substituting properly while statement', () => {
         assert.equal(ifData_19.Value, true);
@@ -517,7 +519,7 @@ var codeString_20 =
 var subCalcData_2 = getSubData(codeString_20);
 var inVec_20 = getInputVector(subCalcData_2, '[2,1]');
 calculateBooleanValuse(subCalcData_2, inVec_20);
-var ifData_20 = subCalcData_2.filter(x=> x.Line ==4)[0];
+var ifData_20 = subCalcData_2.filter(x => x.Line == 4)[0];
 describe('The data flow analayzer', () => {
     it('is substituting properly while statement', () => {
         assert.equal(ifData_20.Value, false);
@@ -536,7 +538,7 @@ var codeString_21 =
 var subCalcData_3 = getSubData(codeString_21);
 var inVec_21 = getInputVector(subCalcData_3, '[2,1]');
 calculateBooleanValuse(subCalcData_3, inVec_21);
-var ifData_21 = subCalcData_3.filter(x=> x.Line ==3)[0];
+var ifData_21 = subCalcData_3.filter(x => x.Line == 3)[0];
 describe('The data flow analayzer', () => {
     it('is substituting properly while statement', () => {
         assert.equal(ifData_21.Value, false);
@@ -547,16 +549,17 @@ function getSubData(codeString) {
     var codeJson = parseCode(codeString);
     var data = extractData(codeJson);
     var glblDfs = getGlobalDefs(data, codeString);
-    return substituteData(glblDfs,data);
+    return substituteData(glblDfs, data);
 }
 
 const code_0 = 'function foo(w){\n    let a = w;\n    w = a +1;\n    if(a < w){\n        a = a+5;\n    }\n    return a;\n}';
-const code_1 = 'function foo(w){\n' +'    let a = 2;\n' +'    return a + w;\n' +'}';
-const code_2 = 'function foo(w){\n' +'    let a = 2;\n' +'    if(w < a){\n' +'       w--;\n' +'    }\n' +'    return a + w;\n' +'}';
+const code_1 = 'function foo(w){\n' + '    let a = 2;\n' + '    return a + w;\n' + '}';
+const code_2 = 'function foo(w){\n' + '    let a = 2;\n' + '    if(w < a){\n' + '       w--;\n' + '    }\n' + '    return a + w;\n' + '}';
+const code_3 = 'function foo(w){\n    let a = w;\n    w = a -1;\n    if(a < w){\n        a = a+5;\n    }\n    return a;\n}';
 //const code_3 = 'function foo(x){\n' +'    let a = x[0]+1;\n' +'    if (a < x[1]) {\n' +'        a = a + 5;\n' +'    }\n' +'    \n' +'    return a;\n' +'}\n';
 const code_array = [code_0, code_1, code_2];
-const nodes_0 =  getNodes(code_0);
-const filtered_nodes_0 =  filterNodes(nodes_0.slice());
+const nodes_0 = getNodes(code_0);
+const filtered_nodes_0 = filterNodes(nodes_0.slice());
 const merged_c_uses = mergeCUses(filtered_nodes_0.slice());
 describe('The graph dotter ', () => {
     var merged = mergeCUses(getTestFilteredNodes(0));
@@ -573,14 +576,14 @@ describe('The graph dotter ', () => {
 describe('The graph dotter ', () => {
     var test_nodes = getTestFilteredNodes(0);
     it('is decideing right what nodes need to be megred', () => {
-        assert.equal(needToMerge(test_nodes[0],test_nodes[1]), true);
-        assert.equal(needToMerge(test_nodes[1],test_nodes[2]), false);
-        assert.equal(needToMerge(test_nodes[2],test_nodes[3]), false);
+        assert.equal(needToMerge(test_nodes[0], test_nodes[1]), true);
+        assert.equal(needToMerge(test_nodes[1], test_nodes[2]), false);
+        assert.equal(needToMerge(test_nodes[2], test_nodes[3]), false);
     });
 });
 describe('The graph dotter ', () => {
     var tmp_nodes = getTestFilteredNodes(0);
-    mergeNodes(tmp_nodes[0],tmp_nodes[1])
+    mergeNodes(tmp_nodes[0], tmp_nodes[1]);
     it('merging nodes properly', () => {
         assert.equal(tmp_nodes[0].astNode.length, 2);
     });
@@ -619,31 +622,95 @@ describe('The graph dotter ', () => {
 
 function getNodes(code) {
     var ast = esprima.parse(code);
-    var nodes = esgraph(ast.body[0].body, { loc: true })[2];
-    convertASTtoArray( nodes);
+    var nodes = esgraph(ast.body[0].body, {loc: true})[2];
+    convertASTtoArray(nodes);
     return nodes;
 }
 
 function getVectorCalculatedGraph(i, inVec) {
-    var ast = esprima.parse(code_array[i], { loc: true });
-    let parsedCode = parseCode(code_array[i],{loc: true});
+    var ast = esprima.parse(code_array[i], {loc: true});
+    let parsedCode = parseCode(code_array[i], {loc: true});
     let data_array = extractData(parsedCode);
-    data_array.sort(function(a, b){return a['Line']-b['Line'];});
+    data_array.sort(function (a, b) {
+        return a['Line'] - b['Line'];
+    });
     var globalDefs = getGlobalDefs(data_array, code_array[i]);
     var substitutedData = substituteData(globalDefs, data_array);
     var inputVector = getInputVector(substitutedData, inVec);
     calculateBooleanValuse(substitutedData, inputVector);
-    var graph = esgraph(ast.body[0].body, { loc: true });
+    var graph = esgraph(ast.body[0].body, {loc: true});
     return calculateVectorPath(graph, substitutedData);
 }
 
 function filterNodes(nodes) {
-    return nodes.filter(x=> x.type!='entry' &&x.type!='exit');
+    return nodes.filter(x => x.type != 'entry' && x.type != 'exit');
 }
-function getTestFilteredNodes(i){
+
+function getTestFilteredNodes(i) {
     var nodes = getNodes(code_array[i]);
     var filtered_nodes = filterNodes(nodes);
     return filtered_nodes;
+}
+
+describe('Vector path analyzer ', () => {
+    var data = setupData();
+    var graph = setupGraph();
+    calculateVectorPath(graph, data);
+    it('is setting properly the inVectorPath field', () => {
+        assert.equal(graph[2][1].inVectorPath, true);
+        assert.equal(graph[2][4].inVectorPath, false);
+    });
+});
+
+describe('Vector path analyzer ', () => {
+    var data = setupData();
+    var graph = setupGraph();
+    inPath(graph[2][1], data);
+    it('is setting properly the inVectorPath field\'', () => {
+        assert.equal(graph[2][1].inVectorPath, true);
+        assert.equal(graph[2][4].inVectorPath, false);
+    });
+});
+
+describe('Vector path analyzer ', () => {
+    var graph = setupGraph();
+    it('is setting properly determining the node type\'', () => {
+        assert.equal(calc_type(graph[2][1]), 'normal');
+    });
+});
+
+describe('Vector path analyzer ', () => {
+    var data = setupData();
+    var graph = setupGraph();
+    var nodeCond = graph[2][3];
+    it('is calculating properly the node line\'', () => {
+        assert.equal(getCondLine(nodeCond, data), 4);
+    });
+});
+
+describe('Vector path analyzer ', () => {
+    var data = setupData();
+    it('is calculating properly the node line\'', () => {
+        assert.equal(getCondValue(4, data), false);
+    });
+});
+
+function setupData() {
+    let parsedCode = parseCode(code_3, {loc: true});
+    let data_array = extractData(parsedCode);
+    data_array.sort(function (a, b) {
+        return a['Line'] - b['Line'];
+    });
+    var globalDefs = getGlobalDefs(data_array, code_0);
+    var substitutedData = substituteData(globalDefs, data_array);
+    var inputVector = getInputVector(substitutedData, '1');
+    calculateBooleanValuse(substitutedData, inputVector);
+    return substitutedData;
+}
+
+function setupGraph() {
+    var json = esprima.parse(code_0, {loc: true});
+    return esgraph(json.body[0].body, {loc: true});
 }
 
 
