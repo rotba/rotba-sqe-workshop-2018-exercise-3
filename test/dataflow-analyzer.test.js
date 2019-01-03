@@ -658,7 +658,7 @@ describe('Vector path analyzer ', () => {
     calculateVectorPath(graph, data);
     it('is setting properly the inVectorPath field', () => {
         assert.equal(graph[2][1].inVectorPath, true);
-        assert.equal(graph[2][4].inVectorPath, false);
+        assert.equal(graph[2][4].inVectorPath, undefined);
     });
 });
 
@@ -668,7 +668,7 @@ describe('Vector path analyzer ', () => {
     inPath(graph[2][1], data);
     it('is setting properly the inVectorPath field\'', () => {
         assert.equal(graph[2][1].inVectorPath, true);
-        assert.equal(graph[2][4].inVectorPath, false);
+        assert.equal(graph[2][4].inVectorPath, undefined);
     });
 });
 
