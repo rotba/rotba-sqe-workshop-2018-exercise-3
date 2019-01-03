@@ -652,7 +652,7 @@ function getTestFilteredNodes(i) {
     return filtered_nodes;
 }
 
-describe.only('Vector path analyzer ', () => {
+describe('Vector path analyzer ', () => {
     var data = setupData();
     var graph = setupGraph();
     calculateVectorPath(graph, data);
