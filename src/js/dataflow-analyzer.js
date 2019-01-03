@@ -786,6 +786,7 @@ const vectorPathNodeHandlers  = {
 };
 
 function calculateVectorPath(cfg, data){
+    cfg[2].forEach(node=> node.inVectorPath=false);
     inPath(cfg[2][[0]], data);
     return cfg;
 }
